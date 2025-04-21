@@ -1,0 +1,21 @@
+{
+  "name": "capstone",
+  "version": "1.0.0",
+  "description": "Project Type: Full-Stack Web Application\r Goal: A platform where users can record and schedule voice messages, text, images or videos to be delivered to their future selves.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kalviumcommunity/S74_MithunKrishnaArun_Capstone_MemoMe.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/kalviumcommunity/S74_MithunKrishnaArun_Capstone_MemoMe/issues"
+  },
+  "homepage": "https://github.com/kalviumcommunity/S74_MithunKrishnaArun_Capstone_MemoMe#readme"
+}

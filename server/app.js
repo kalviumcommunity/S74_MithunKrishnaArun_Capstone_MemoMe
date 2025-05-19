@@ -1,56 +1,55 @@
 const express = require('express');
 const cors = require('cors');
+const Memory = require('./models/Memory');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-let memories = [
-  { id: 1, title: 'First Memory', content: 'Hello future me!', date: '2025-06-01' },
-  { id: 2, title: 'Second Memory', content: 'Keep going!', date: '2025-06-10' },
-];
-
+// Health check
 app.get('/', (req, res) => {
   res.send('API is running');
 });
 
-app.get('/api/memories', (req, res) => {
+// GET: Fetch all memories
+app.get('/api/memories', async (req, res) => {
+  const memories = await Memory.find();
   res.json(memories);
 });
 
-app.post('/api/memories', (req, res) => {
+// POST: Create a memory and save to DB
+app.post('/api/memories', async (req, res) => {
   const { title, content, date } = req.body;
+
   if (!title || !content || !date) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
-  const newMemory = {
-    id: Date.now(),
-    title,
-    content,
-    date,
-  };
-  memories.push(newMemory);
-  res.status(201).json({ message: 'Memory created', data: newMemory });
+  try {
+    const newMemory = await Memory.create({ title, content, date });
+    res.status(201).json({ message: 'Memory created', data: newMemory });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
 });
 
-app.put('/api/memories/:id', (req, res) => {
-  const memoryId = parseInt(req.params.id);
-  const { title, content, date } = req.body;
+// PUT: Update a memory by ID
+app.put('/api/memories/:id', async (req, res) => {
+  try {
+    const updatedMemory = await Memory.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
 
-  const memoryIndex = memories.findIndex(m => m.id === memoryId);
-  if (memoryIndex === -1) {
-    return res.status(404).json({ message: 'Memory not found' });
+    if (!updatedMemory) {
+      return res.status(404).json({ message: 'Memory not found' });
+    }
+
+    res.json({ message: 'Memory updated', data: updatedMemory });
+  } catch (error) {
+    res.status(500).json({ message: 'Update failed', error: error.message });
   }
-
-  memories[memoryIndex] = {
-    ...memories[memoryIndex],
-    title: title || memories[memoryIndex].title,
-    content: content || memories[memoryIndex].content,
-    date: date || memories[memoryIndex].date,
-  };
-
-  res.json({ message: 'Memory updated', data: memories[memoryIndex] });
 });
 
 module.exports = app;

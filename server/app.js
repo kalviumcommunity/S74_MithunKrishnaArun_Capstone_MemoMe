@@ -1,23 +1,27 @@
 const express = require('express');
 const cors = require('cors');
-const Memory = require('./models/Memory');
+const Memory = require('./models/Memory'); // Mongoose model
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health check
+// ✅ Health check route
 app.get('/', (req, res) => {
   res.send('API is running');
 });
 
-// GET: Fetch all memories
+// ✅ GET: Fetch all memories
 app.get('/api/memories', async (req, res) => {
-  const memories = await Memory.find();
-  res.json(memories);
+  try {
+    const memories = await Memory.find();
+    res.json(memories);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch memories', error: error.message });
+  }
 });
 
-// POST: Create a memory and save to DB
+// ✅ POST: Create and save a memory to MongoDB
 app.post('/api/memories', async (req, res) => {
   const { title, content, date } = req.body;
 
@@ -33,8 +37,10 @@ app.post('/api/memories', async (req, res) => {
   }
 });
 
-// PUT: Update a memory by ID
+// ✅ PUT: Update a memory by ID (minor update added)
 app.put('/api/memories/:id', async (req, res) => {
+  console.log(`🔄 Attempting to update memory with ID: ${req.params.id}`); // Minor update
+
   try {
     const updatedMemory = await Memory.findByIdAndUpdate(
       req.params.id,
@@ -46,7 +52,7 @@ app.put('/api/memories/:id', async (req, res) => {
       return res.status(404).json({ message: 'Memory not found' });
     }
 
-    res.json({ message: 'Memory updated', data: updatedMemory });
+    res.json({ message: 'Memory updated successfully', data: updatedMemory }); // Changed message
   } catch (error) {
     res.status(500).json({ message: 'Update failed', error: error.message });
   }

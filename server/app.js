@@ -6,12 +6,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Health check route
+// Health check route
 app.get('/', (req, res) => {
   res.send('API is running');
 });
 
-// ✅ GET: Fetch all memories
+// GET: Fetch all memories
 app.get('/api/memories', async (req, res) => {
   try {
     const memories = await Memory.find();
@@ -21,23 +21,24 @@ app.get('/api/memories', async (req, res) => {
   }
 });
 
-// ✅ POST: Create and save a memory to MongoDB
+// POST: Create and save a memory to MongoDB
 app.post('/api/memories', async (req, res) => {
-  const { title, content, date } = req.body;
+  const { title, content, date, user } = req.body;
 
-  if (!title || !content || !date) {
-    return res.status(400).json({ message: 'All fields are required' });
+  if (!title || !content || !date || !user) {
+    return res.status(400).json({ message: 'All fields including user ID are required' });
   }
 
   try {
-    const newMemory = await Memory.create({ title, content, date });
-    res.status(201).json({ message: 'Memory created', data: newMemory });
+    const newMemory = await Memory.create({ title, content, date, user });
+    res.status(201).json({ message: 'Memory created with user reference', data: newMemory });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
-// ✅ PUT: Update a memory by ID (minor update added)
+
+// PUT: Update a memory by ID (minor update added)
 app.put('/api/memories/:id', async (req, res) => {
   console.log(`🔄 Attempting to update memory with ID: ${req.params.id}`); // Minor update
 

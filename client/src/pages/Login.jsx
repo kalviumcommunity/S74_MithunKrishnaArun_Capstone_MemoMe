@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
-
-const API = 'https://s74-mithunkrishnaarun-capstone-memome.onrender.com';
+import { API_BASE_URL } from '../config/api';
 
 function Login() {
   const navigate = useNavigate();
@@ -16,13 +15,8 @@ function Login() {
     setError('');
     if (!email || !password) { setError('Please fill in all fields'); return; }
 
-    // Navigate immediately — don't wait for the server
-    const tempUser = { name: email.split('@')[0], email };
-    localStorage.setItem('memome_user', JSON.stringify(tempUser));
-    navigate('/dashboard');
-
-    // API call runs in background to get real token
-    fetch(`${API}/api/auth/login`, {
+    setLoading(true);
+    fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -32,9 +26,18 @@ function Login() {
         if (data.token) {
           localStorage.setItem('memome_token', data.token);
           localStorage.setItem('memome_user', JSON.stringify(data.user));
+          navigate('/dashboard');
+          return;
         }
+
+        setError(data.message || 'Invalid email or password');
       })
-      .catch(() => {});
+      .catch(() => {
+        setError('Unable to login right now. Please ensure the backend is running and try again.');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
@@ -95,8 +98,8 @@ function Login() {
 
           {error && <p className="login-error">{error}</p>}
 
-          <button className="login-btn-submit" onClick={handleSubmit}>
-            <span>Sign in</span>
+          <button className="login-btn-submit" onClick={handleSubmit} disabled={loading}>
+            <span>{loading ? 'Signing in...' : 'Sign in'}</span>
             <span className="login-btn-arrow">&#8594;</span>
           </button>
 

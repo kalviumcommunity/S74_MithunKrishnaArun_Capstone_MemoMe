@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import './Register.css';
-
-const API = 'https://s74-mithunkrishnaarun-capstone-memome.onrender.com';
+import { API_BASE_URL } from '../config/api';
 
 function Register() {
   const navigate = useNavigate();
@@ -21,25 +20,29 @@ function Register() {
     if (!firstName || !email || !password) { setError('Please fill in all fields'); return; }
     if (password !== confirm) { setError('Passwords do not match'); return; }
 
-    // Navigate immediately — don't wait for the server
-    const tempUser = { name: `${firstName} ${lastName}`.trim(), email };
-    localStorage.setItem('memome_user', JSON.stringify(tempUser));
-    navigate('/dashboard');
-
-    // API call runs in background to persist the account
-    fetch(`${API}/api/auth/register`, {
+    setLoading(true);
+    fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: tempUser.name, email, password }),
+      body: JSON.stringify({ name: `${firstName} ${lastName}`.trim(), email, password }),
     })
       .then(res => res.json())
       .then(data => {
         if (data.token) {
           localStorage.setItem('memome_token', data.token);
           localStorage.setItem('memome_user', JSON.stringify(data.user));
+          navigate('/dashboard');
+          return;
         }
+
+        setError(data.message || 'Unable to create account');
       })
-      .catch(() => {});
+      .catch(() => {
+        setError('Unable to register right now. Please try again.');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
@@ -111,8 +114,8 @@ function Register() {
 
           {error && <p className="login-error">{error}</p>}
 
-          <button className="login-btn-submit" onClick={handleSubmit}>
-            <span>Create account</span>
+          <button className="login-btn-submit" onClick={handleSubmit} disabled={loading}>
+            <span>{loading ? 'Creating account...' : 'Create account'}</span>
             <span className="login-btn-arrow">&#8594;</span>
           </button>
 
